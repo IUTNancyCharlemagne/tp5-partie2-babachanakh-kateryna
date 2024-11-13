@@ -1,6 +1,7 @@
 public class Aeroport {
 
     private static Aeroport instance;
+    private boolean pisteDisponible = true;
 
     private Aeroport() {
     }
@@ -18,6 +19,28 @@ public class Aeroport {
      */
     //public void faireDecoller(Avion avion) {
     public synchronized void faireDecoller(Avion avion) {
+        while (!autoriserAdecoller()) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
         avion.decoller();
+        libererPiste();
     }
+
+    public synchronized boolean autoriserAdecoller() {
+        if (pisteDisponible) {
+            pisteDisponible = false;
+            return true;
+        }
+        return false;
+    }
+
+    public synchronized void libererPiste() {
+        pisteDisponible = true;
+        notifyAll();
+    }
+
 }
